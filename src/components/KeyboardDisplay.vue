@@ -8,12 +8,11 @@
       <div
         v-for="keyDef in row"
         :key="keyDef.key"
-        :style="keyStyle(keyDef, pressedKey === keyDef.key)"
+        :style="keyStyle(keyDef, pressedKey === keyDef.key || activeKey === keyDef.key)"
         class="relative flex flex-col items-center justify-center rounded border text-xs font-mono cursor-pointer"
         :class="[
           compact ? 'w-9 h-9' : 'w-12 h-12',
-          pressedKey === keyDef.key ? 'pressed' : '',
-          activeKey === keyDef.key ? 'ring-2 ring-white brightness-150' : 'opacity-90',
+          (pressedKey === keyDef.key || activeKey === keyDef.key) ? 'pressed' : 'opacity-90',
         ]"
         @mousedown="handlePress(keyDef.key)"
         @touchstart.prevent="handlePress(keyDef.key)"
@@ -65,11 +64,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { KEYBOARD_ROWS, FINGER_COLORS, FINGER_NAMES, type KeyDef } from '../data/bopomofoLayout'
 import { playKeyClick } from '../composables/useKeySound'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   activeKey?: string | null
   showLegend?: boolean
   compact?: boolean
@@ -85,6 +84,13 @@ const emit = defineEmits<{
 
 const pressedKey = ref<string | null>(null)
 const rippleKey = ref<string | null>(null)
+
+// Trigger ripple when activeKey changes (e.g. physical keypress from parent)
+watch(() => props.activeKey, (key) => {
+  if (!key) return
+  rippleKey.value = key
+  setTimeout(() => { rippleKey.value = null }, 400)
+})
 
 function handlePress(key: string) {
   playKeyClick(key === ' ' ? 'space' : 'normal')

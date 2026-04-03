@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-3xl mx-auto space-y-6">
+  <div class="max-w-4xl mx-auto space-y-6">
     <h1 class="text-2xl font-bold text-center text-indigo-300">注音打字練習</h1>
 
     <div class="flex gap-2 justify-center">
@@ -61,7 +61,7 @@
 
     <div class="bg-gray-900 rounded-2xl p-4 overflow-x-auto">
       <p class="text-xs text-gray-500 text-center mb-3">鍵盤指法提示</p>
-      <KeyboardDisplay :compact="true" :show-legend="false" :active-key="activeKey" />
+      <KeyboardDisplay :compact="false" :show-legend="false" :active-key="activeKey" />
     </div>
 
     <div v-if="finished" class="bg-green-900/40 border border-green-700 rounded-xl p-4 text-center space-y-2">
@@ -136,13 +136,28 @@ function onInput() {
   processInput()
 }
 
+// e.key returns 'Process' during IME composition — use e.code for physical key
+function codeToKey(code: string): string | null {
+  if (code === 'Space') return ' '
+  if (code.startsWith('Key')) return code.slice(3).toLowerCase()
+  if (code.startsWith('Digit')) return code.slice(5)
+  const map: Record<string, string> = {
+    Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']',
+    Semicolon: ';', Quote: "'", Comma: ',', Period: '.', Slash: '/',
+    Backquote: '`',
+  }
+  return map[code] ?? null
+}
+
 function onKeydown(e: KeyboardEvent) {
   if (finished.value) return
 
-  // Highlight and play sound for the physical key pressed
-  const k = e.key === ' ' ? ' ' : e.key.toLowerCase()
-  activeKey.value = k
-  playKeyClick(k === ' ' ? 'space' : 'normal')
+  // Use e.code so it works even during IME composition (e.key === 'Process')
+  const k = codeToKey(e.code)
+  if (k) {
+    activeKey.value = k
+    playKeyClick(k === ' ' ? 'space' : 'normal')
+  }
 
   if (e.key === 'Backspace' && !composing.value) {
     if (typedCount.value > 0) {
