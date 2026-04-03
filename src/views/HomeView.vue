@@ -4,7 +4,27 @@
     <p class="text-center text-gray-400 text-sm mb-6">注音（大千式）鍵盤配置與手指分工</p>
 
     <div class="bg-gray-900 rounded-2xl p-6 shadow-xl">
-      <KeyboardDisplay :show-legend="true" />
+      <KeyboardDisplay :show-legend="true" :active-key="activeKey" />
+    </div>
+
+    <!-- pressed key info -->
+    <div class="mt-3 h-8 flex items-center justify-center gap-3 text-sm">
+      <template v-if="activeKey === ' '">
+        <span class="font-mono text-white bg-gray-700 px-2 py-0.5 rounded">Space</span>
+        <span class="text-gray-400">·</span>
+        <span class="text-xs px-2 py-0.5 rounded" :style="{ backgroundColor: FINGER_COLORS['L5'] + '33', color: FINGER_COLORS['L5'] }">
+          {{ FINGER_NAMES['L5'] }}／{{ FINGER_NAMES['R5'] }}
+        </span>
+      </template>
+      <template v-else-if="activeKeyDef">
+        <span class="font-mono text-white bg-gray-700 px-2 py-0.5 rounded">{{ activeKeyDef.display }}</span>
+        <span v-if="activeKeyDef.bopomofo" class="text-indigo-300 text-lg font-bold">{{ activeKeyDef.bopomofo }}</span>
+        <span class="text-gray-400">·</span>
+        <span class="text-xs px-2 py-0.5 rounded" :style="{ backgroundColor: FINGER_COLORS[activeKeyDef.finger] + '33', color: FINGER_COLORS[activeKeyDef.finger] }">
+          {{ FINGER_NAMES[activeKeyDef.finger] }}
+        </span>
+      </template>
+      <span v-else class="text-gray-600 text-xs">按下任意鍵查看指法</span>
     </div>
 
     <div class="mt-8 grid grid-cols-2 gap-4">
@@ -46,11 +66,41 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import KeyboardDisplay from '../components/KeyboardDisplay.vue'
-import { KEYBOARD_ROWS, FINGER_COLORS, FINGER_NAMES, type KeyDef } from '../data/bopomofoLayout'
+import { KEYBOARD_ROWS, FINGER_COLORS, FINGER_NAMES, KEY_MAP, type KeyDef } from '../data/bopomofoLayout'
+import { playKeyClick } from '../composables/useKeySound'
 
 const allKeys = KEYBOARD_ROWS.flat()
+const activeKey = ref<string | null>(null)
+
+const activeKeyDef = computed(() =>
+  activeKey.value ? (KEY_MAP[activeKey.value] ?? null) : null
+)
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
+  const k = e.key === ' ' ? ' ' : e.key.toLowerCase()
+  if (k === ' ' || KEY_MAP[k]) {
+    e.preventDefault()
+    activeKey.value = k
+    playKeyClick(k === ' ' ? 'space' : 'normal')
+  }
+}
+
+function onKeyup() {
+  activeKey.value = null
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener('keyup', onKeyup)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('keyup', onKeyup)
+})
 
 interface FingerGroup {
   zone: string

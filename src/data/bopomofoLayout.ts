@@ -30,7 +30,7 @@ export const KEYBOARD_ROWS: KeyDef[][] = [
   [
     { key: '`', display: '`',  bopomofo: '',   finger: 'L1' },
     { key: '1', display: '1',  bopomofo: 'ㄅ', finger: 'L1' },
-    { key: '2', display: '2',  bopomofo: 'ㄉ', finger: 'L4' },
+    { key: '2', display: '2',  bopomofo: 'ㄉ', finger: 'L2' },
     { key: '3', display: '3',  bopomofo: 'ˇ',  finger: 'L3' },
     { key: '4', display: '4',  bopomofo: 'ˋ',  finger: 'L3' },
     { key: '5', display: '5',  bopomofo: 'ㄓ', finger: 'L4' },
@@ -45,7 +45,7 @@ export const KEYBOARD_ROWS: KeyDef[][] = [
   // QWERTY row
   [
     { key: 'q', display: 'Q',  bopomofo: 'ㄆ', finger: 'L1' },
-    { key: 'w', display: 'W',  bopomofo: 'ㄊ', finger: 'L4' },
+    { key: 'w', display: 'W',  bopomofo: 'ㄊ', finger: 'L2' },
     { key: 'e', display: 'E',  bopomofo: 'ㄍ', finger: 'L3' },
     { key: 'r', display: 'R',  bopomofo: 'ㄐ', finger: 'L4' },
     { key: 't', display: 'T',  bopomofo: 'ㄔ', finger: 'L4' },
@@ -60,7 +60,7 @@ export const KEYBOARD_ROWS: KeyDef[][] = [
   // ASDF row
   [
     { key: 'a', display: 'A',  bopomofo: 'ㄇ', finger: 'L1' },
-    { key: 's', display: 'S',  bopomofo: 'ㄋ', finger: 'L4' },
+    { key: 's', display: 'S',  bopomofo: 'ㄋ', finger: 'L2' },
     { key: 'd', display: 'D',  bopomofo: 'ㄎ', finger: 'L3' },
     { key: 'f', display: 'F',  bopomofo: 'ㄑ', finger: 'L4' },
     { key: 'g', display: 'G',  bopomofo: 'ㄕ', finger: 'L4' },
@@ -74,7 +74,7 @@ export const KEYBOARD_ROWS: KeyDef[][] = [
   // ZXCV row
   [
     { key: 'z', display: 'Z',  bopomofo: 'ㄈ', finger: 'L1' },
-    { key: 'x', display: 'X',  bopomofo: 'ㄌ', finger: 'L4' },
+    { key: 'x', display: 'X',  bopomofo: 'ㄌ', finger: 'L2' },
     { key: 'c', display: 'C',  bopomofo: 'ㄏ', finger: 'L3' },
     { key: 'v', display: 'V',  bopomofo: 'ㄒ', finger: 'L4' },
     { key: 'b', display: 'B',  bopomofo: 'ㄖ', finger: 'L4' },

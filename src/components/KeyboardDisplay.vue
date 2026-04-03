@@ -36,9 +36,9 @@
         class="rounded border border-gray-600 flex items-center justify-center text-xs cursor-pointer relative overflow-hidden"
         :class="[
           compact ? 'w-48 h-9' : 'w-64 h-12',
-          pressedKey === ' ' ? 'pressed' : 'opacity-70',
+          (pressedKey === ' ' || activeKey === ' ') ? 'pressed' : 'opacity-70',
         ]"
-        :style="{ backgroundColor: FINGER_COLORS['L5'] + (pressedKey === ' ' ? 'cc' : '33'), borderColor: FINGER_COLORS['L5'] + '88', color: '#fff' }"
+        :style="{ backgroundColor: FINGER_COLORS['L5'] + ((pressedKey === ' ' || activeKey === ' ') ? 'cc' : '33'), borderColor: FINGER_COLORS['L5'] + '88', color: '#fff' }"
         @mousedown="handlePress(' ')"
         @touchstart.prevent="handlePress(' ')"
       >
