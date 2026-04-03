@@ -76,12 +76,13 @@
       >
         下一句
       </button>
+      <p class="text-xs text-gray-500 mt-1">或按 Enter 繼續</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import StatsPanel from '../components/StatsPanel.vue'
 import KeyboardDisplay from '../components/KeyboardDisplay.vue'
 import { getRandomSentence, type Sentence } from '../data/sentences'
@@ -103,21 +104,30 @@ const startTime = ref<number | null>(null)
 const finishTime = ref<number | null>(null)
 const finished = ref(false)
 
-const charErrors = ref<Record<string, CharStat>>({})
-const typedCount = ref(0)
-const errorCount = ref(0)
 const activeKey = ref<string | null>(null)
 
 const currentChars = computed(() => [...sentence.value.text])
 
+// Derived directly from inputValue — no accumulation bugs
+const typedCount = computed(() =>
+  Math.min(inputValue.value.length, sentence.value.text.length)
+)
+
+const accuracy = computed(() => {
+  const raw = inputValue.value
+  const target = sentence.value.text
+  const len = Math.min(raw.length, target.length)
+  if (len === 0) return 100
+  let correct = 0
+  for (let i = 0; i < len; i++) if (raw[i] === target[i]) correct++
+  return Math.round((correct / len) * 100)
+})
+
 function charClass(i: number) {
-  const done = typedCount.value
-  if (i < done) {
-    const char = currentChars.value[i]
-    const stat = charErrors.value[char]
-    return stat && stat.errors > 0 ? 'text-red-400' : 'text-green-400'
-  }
-  if (i === done) return 'bg-indigo-700/50 text-white'
+  const raw = inputValue.value
+  const target = sentence.value.text
+  if (i < raw.length) return raw[i] === target[i] ? 'text-green-400' : 'text-red-400'
+  if (i === raw.length) return 'bg-indigo-700/50 text-white'
   return 'text-gray-500'
 }
 
@@ -176,18 +186,8 @@ function processInput() {
   const target = sentence.value.text
   const raw = inputValue.value
 
-  for (let i = 0; i < raw.length && i < target.length; i++) {
-    const char = target[i]
-    if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 }
-    charErrors.value[char].total++
-    if (raw[i] !== char) {
-      charErrors.value[char].errors++
-      errorCount.value++
-    }
-  }
-  typedCount.value = Math.min(raw.length, target.length)
-
-  if (raw.length >= target.length) {
+  // Only finish when every character matches — not just length
+  if (raw === target) {
     finishTime.value = Date.now()
     finished.value = true
     saveRecord()
@@ -201,19 +201,25 @@ const wpm = computed(() => {
   return Math.round(typedCount.value / elapsed)
 })
 
-const accuracy = computed(() => {
-  if (typedCount.value === 0) return 100
-  return Math.round(((typedCount.value - errorCount.value) / typedCount.value) * 100)
-})
-
 function saveRecord() {
+  // Build per-character error stats from the final input state
+  const target = sentence.value.text
+  const raw = inputValue.value
+  const charErrors: Record<string, CharStat> = {}
+  for (let i = 0; i < target.length; i++) {
+    const char = target[i]
+    if (!charErrors[char]) charErrors[char] = { total: 0, errors: 0 }
+    charErrors[char].total++
+    if (raw[i] !== char) charErrors[char].errors++
+  }
+
   const duration = (finishTime.value! - startTime.value!) / 1000
   historyStore.addRecord({
     wpm: wpm.value,
     accuracy: accuracy.value,
     charCount: typedCount.value,
     duration,
-    charErrors: charErrors.value,
+    charErrors,
   })
 }
 
@@ -229,9 +235,6 @@ function nextSentence() {
 function resetPractice(lv: Level | null) {
   sentence.value = getRandomSentence(lv)
   inputValue.value = ''
-  typedCount.value = 0
-  errorCount.value = 0
-  charErrors.value = {}
   startTime.value = null
   finishTime.value = null
   finished.value = false
@@ -239,4 +242,14 @@ function resetPractice(lv: Level | null) {
   activeKey.value = null
   nextTick(() => inputEl.value?.focus())
 }
+
+function onGlobalKeydown(e: KeyboardEvent) {
+  if (finished.value && e.code === 'Enter') {
+    e.preventDefault()
+    nextSentence()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onGlobalKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
 </script>
