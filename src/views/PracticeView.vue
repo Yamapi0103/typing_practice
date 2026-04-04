@@ -56,7 +56,7 @@
         <template v-for="(char, i) in currentChars" :key="i">
           <span
             class="rounded transition-all"
-            :class="charClass(i)"
+            :class="charClasses[i]"
           >{{ char === '\n' ? '↵' : char }}</span><br v-if="char === '\n'" />
         </template>
       </p>
@@ -180,16 +180,18 @@ const accuracy = computed(() => {
   return Math.round((correct / len) * 100)
 })
 
-function charClass(i: number) {
+const charClasses = computed(() => {
   const raw = inputValue.value
   const target = sentence.value.text
   const colorUpTo = composing.value ? composingStartLen.value : raw.length
-  if (i < colorUpTo) return raw[i] === target[i] ? 'text-green-400' : 'text-red-400'
-  if (i === raw.length) return wrongAttempt.value
-    ? 'bg-red-500/30 text-red-500'
-    : 'bg-indigo-700/50 text-white'
-  return 'text-gray-500'
-}
+  return currentChars.value.map((_, i) => {
+    if (i < colorUpTo) return raw[i] === target[i] ? 'text-green-400' : 'text-red-400'
+    if (i === raw.length) return wrongAttempt.value
+      ? 'bg-red-500/30 text-red-500'
+      : 'bg-indigo-700/50 text-white'
+    return 'text-gray-500'
+  })
+})
 
 function onBeforeInput(e: InputEvent) {
   if (lang.value !== 'en' || composing.value) return

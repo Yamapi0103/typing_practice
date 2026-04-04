@@ -8,7 +8,8 @@ export type Lang = 'zh' | 'en'
 const RSS_PATH = import.meta.env.VITE_RSS_API ?? '/rss/Rss_News.aspx?n=9E7AC85F1954DDA8'
 const EN_API = import.meta.env.VITE_DATA_API ?? '/typefit/data/typing-texts.json'
 
-const lang = ref<Lang>((localStorage.getItem('lang') as Lang) ?? 'zh')
+const storedLang = localStorage.getItem('lang')
+const lang = ref<Lang>(storedLang === 'en' || storedLang === 'zh' ? storedLang : 'zh')
 
 // Sentence pools
 const zhSentences = ref<Sentence[]>([...SENTENCES])
@@ -39,7 +40,12 @@ function currentPool(level: Level | null): Sentence[] {
 
 function buildQueue(level: Level | null): void {
   const key = `${lang.value}_${level}`
-  const shuffled = [...currentPool(level)].sort(() => Math.random() - 0.5)
+  const arr = [...currentPool(level)]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  const shuffled = arr
   queues[key] = shuffled
 }
 

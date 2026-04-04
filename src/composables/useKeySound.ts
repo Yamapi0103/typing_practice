@@ -1,3 +1,9 @@
+const FREQ = { normal: 1800, space: 600 }
+const TONE = {
+  normal: { start: 180, end: 80 },
+  space:  { start: 120, end: 60 },
+}
+
 let ctx: AudioContext | null = null
 
 function getCtx(): AudioContext {
@@ -24,7 +30,7 @@ export function playKeyClick(variant: 'normal' | 'space' = 'normal') {
   // Band-pass filter — makes it sound more mechanical
   const bpf = ac.createBiquadFilter()
   bpf.type = 'bandpass'
-  bpf.frequency.value = variant === 'space' ? 600 : 1800
+  bpf.frequency.value = FREQ[variant]
   bpf.Q.value = 1.2
 
   // Fast volume envelope
@@ -41,8 +47,8 @@ export function playKeyClick(variant: 'normal' | 'space' = 'normal') {
   // --- short tonal "thock" body ---
   const osc = ac.createOscillator()
   osc.type = 'sine'
-  osc.frequency.setValueAtTime(variant === 'space' ? 120 : 180, now)
-  osc.frequency.exponentialRampToValueAtTime(variant === 'space' ? 60 : 80, now + 0.06)
+  osc.frequency.setValueAtTime(TONE[variant].start, now)
+  osc.frequency.exponentialRampToValueAtTime(TONE[variant].end, now + 0.06)
 
   const oscGain = ac.createGain()
   oscGain.gain.setValueAtTime(0.15, now)

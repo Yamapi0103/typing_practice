@@ -27,7 +27,7 @@ const props = defineProps<{
   accuracy: number
   typed: number
   errors: number
-  lang?: string
+  lang?: 'zh' | 'en'
 }>()
 
 const accuracyColor = computed(() => {
