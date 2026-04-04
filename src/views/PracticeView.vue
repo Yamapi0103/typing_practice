@@ -29,13 +29,15 @@
 
     <p v-if="sentencesLoading" class="text-xs text-indigo-400 text-center animate-pulse">正在載入最新題目…</p>
 
-    <div class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center flex-wrap gap-1">
-      <span
-        v-for="(char, i) in currentChars"
-        :key="i"
-        class="text-2xl font-bold px-0.5 rounded transition-all"
-        :class="charClass(i)"
-      >{{ char }}</span>
+    <div class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center">
+      <p class="text-center text-2xl font-bold leading-relaxed">
+        <span
+          v-for="(char, i) in currentChars"
+          :key="i"
+          class="px-0.5 rounded transition-all"
+          :class="charClass(i)"
+        >{{ char }}</span>
+      </p>
     </div>
 
     <div class="relative">
