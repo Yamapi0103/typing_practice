@@ -1,7 +1,26 @@
 <template>
   <div class="max-w-4xl mx-auto space-y-6">
-    <h1 class="text-2xl font-bold text-center text-indigo-300">注音打字練習</h1>
+    <h1 class="text-2xl font-bold text-center text-indigo-300">打字練習</h1>
 
+    <!-- Language toggle -->
+    <div class="flex gap-2 justify-center">
+      <button
+        @click="selectLang('zh')"
+        :class="[
+          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
+          lang === 'zh' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
+        ]"
+      >中文</button>
+      <button
+        @click="selectLang('en')"
+        :class="[
+          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
+          lang === 'en' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
+        ]"
+      >English</button>
+    </div>
+
+    <!-- Level buttons -->
     <div class="flex gap-2 justify-center">
       <button
         v-for="lv in ([1, 2, 3] as const)"
@@ -34,7 +53,7 @@
         <span
           v-for="(char, i) in currentChars"
           :key="i"
-          class="px-0.5 rounded transition-all"
+          class="rounded transition-all"
           :class="charClass(i)"
         >{{ char }}</span>
       </p>
@@ -51,7 +70,7 @@
           @keydown="onKeydown"
           @keyup="onKeyup"
           :disabled="finished"
-          placeholder="點此開始輸入（使用注音輸入法）"
+          :placeholder="lang === 'zh' ? '點此開始輸入（使用注音輸入法）' : 'Click here to start typing'"
           class="w-full bg-gray-800 border-2 rounded-xl px-4 py-3 text-lg outline-none transition-colors"
           :class="finished ? 'border-green-600 text-green-400' : 'border-indigo-700 focus:border-indigo-400 text-white'"
         />
@@ -96,14 +115,14 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import StatsPanel from '../components/StatsPanel.vue'
 import KeyboardDisplay from '../components/KeyboardDisplay.vue'
-import { useSentences } from '../composables/useSentences'
+import { useSentences, type Lang } from '../composables/useSentences'
 import type { Sentence } from '../data/sentences'
 import { useHistoryStore } from '../stores/historyStore'
 import type { CharStat } from '../stores/historyStore'
 import { playKeyClick } from '../composables/useKeySound'
 
 const historyStore = useHistoryStore()
-const { loading: sentencesLoading, fetchSentences, getRandomSentence } = useSentences()
+const { lang, loading: sentencesLoading, fetchZh, fetchEn, switchLang, getRandomSentence } = useSentences()
 
 type Level = 1 | 2 | 3
 
@@ -121,7 +140,6 @@ const activeKey = ref<string | null>(null)
 
 const currentChars = computed(() => [...sentence.value.text])
 
-// Derived directly from inputValue — no accumulation bugs
 const typedCount = computed(() =>
   Math.min(inputValue.value.length, sentence.value.text.length)
 )
@@ -155,11 +173,11 @@ function onCompositionEnd() {
 }
 
 function onInput() {
+  if (!startTime.value) startTime.value = Date.now()
   if (composing.value) return
   processInput()
 }
 
-// e.key returns 'Process' during IME composition — use e.code for physical key
 function codeToKey(code: string): string | null {
   if (code === 'Space') return ' '
   if (code.startsWith('Key')) return code.slice(3).toLowerCase()
@@ -174,15 +192,11 @@ function codeToKey(code: string): string | null {
 
 function onKeydown(e: KeyboardEvent) {
   if (finished.value) return
-
-  // Use e.code so it works even during IME composition (e.key === 'Process')
   const k = codeToKey(e.code)
   if (k) {
     activeKey.value = k
     playKeyClick(k === ' ' ? 'space' : 'normal')
   }
-
-
 }
 
 function onKeyup() {
@@ -192,8 +206,6 @@ function onKeyup() {
 function processInput() {
   const target = sentence.value.text
   const raw = inputValue.value
-
-  // Only finish when every character matches — not just length
   if (raw === target) {
     finishTime.value = Date.now()
     finished.value = true
@@ -209,7 +221,6 @@ const wpm = computed(() => {
 })
 
 function saveRecord() {
-  // Build per-character error stats from the final input state
   const target = sentence.value.text
   const raw = inputValue.value
   const charErrors: Record<string, CharStat> = {}
@@ -219,7 +230,6 @@ function saveRecord() {
     charErrors[char].total++
     if (raw[i] !== char) charErrors[char].errors++
   }
-
   const duration = (finishTime.value! - startTime.value!) / 1000
   historyStore.addRecord({
     wpm: wpm.value,
@@ -228,6 +238,12 @@ function saveRecord() {
     duration,
     charErrors,
   })
+}
+
+function selectLang(l: Lang) {
+  switchLang(l)
+  resetPractice(level.value)
+  if (l === 'en') fetchEn()
 }
 
 function selectLevel(lv: Level | null) {
@@ -259,7 +275,10 @@ function onGlobalKeydown(e: KeyboardEvent) {
 
 onMounted(() => {
   window.addEventListener('keydown', onGlobalKeydown)
-  fetchSentences().then(() => {
+  const init = lang.value === 'en'
+    ? fetchEn()
+    : fetchZh()
+  init.then(() => {
     if (!startTime.value) sentence.value = getRandomSentence(level.value)
   })
 })

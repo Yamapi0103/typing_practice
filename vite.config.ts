@@ -10,6 +10,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: path => path.replace(/^\/rss/, ''),
       },
+      '/typefit': {
+        target: 'https://type.fit',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/typefit/, ''),
+      },
     },
   },
 })
