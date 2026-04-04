@@ -28,7 +28,6 @@ async function fetchSentences(): Promise<void> {
     const res = await fetch(RSS_PATH)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const text = await res.text()
-    console.log("🚀 ~ fetchSentences ~ text:", text)
     const doc = new DOMParser().parseFromString(text, 'text/xml')
     const titles = Array.from(doc.querySelectorAll('item > title'))
     const parsed: Sentence[] = []
