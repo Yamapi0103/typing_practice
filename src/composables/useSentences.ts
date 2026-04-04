@@ -11,6 +11,25 @@ const sentences = ref<Sentence[]>([...SENTENCES])
 const loading = ref(false)
 let fetched = false
 
+// Queue per level — tracks remaining unused sentences
+const queues: Record<string, Sentence[]> = {}
+
+function buildQueue(level: Level | null): Sentence[] {
+  const key = String(level)
+  const filtered = level ? sentences.value.filter(s => s.level === level) : sentences.value
+  // Fallback to all sentences if no match for this level
+  const pool = filtered.length > 0 ? filtered : sentences.value
+  const shuffled = [...pool].sort(() => Math.random() - 0.5)
+  queues[key] = shuffled
+  return shuffled
+}
+
+function getQueue(level: Level | null): Sentence[] {
+  const key = String(level)
+  if (!queues[key] || queues[key].length === 0) buildQueue(level)
+  return queues[key]
+}
+
 function isChinese(text: string): boolean {
   return /[\u4e00-\u9fff]/.test(text)
 }
@@ -40,6 +59,8 @@ async function fetchSentences(): Promise<void> {
     if (parsed.length > 0) {
       sentences.value = parsed
       fetched = true
+      // Reset queues so next call uses fetched sentences
+      Object.keys(queues).forEach(k => delete queues[k])
     }
   } catch {
     // fallback to static sentences — already set
@@ -49,9 +70,9 @@ async function fetchSentences(): Promise<void> {
 }
 
 function getRandomSentence(level: Level | null = null): Sentence {
-  const pool = level ? sentences.value.filter(s => s.level === level) : sentences.value
-  const src = pool.length > 0 ? pool : sentences.value
-  return src[Math.floor(Math.random() * src.length)]
+  const queue = getQueue(level)
+
+  return queue.pop()!
 }
 
 export function useSentences() {
