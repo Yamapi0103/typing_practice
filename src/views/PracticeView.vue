@@ -40,23 +40,30 @@
       </p>
     </div>
 
-    <div class="relative">
-      <input
-        ref="inputEl"
-        v-model="inputValue"
-        @compositionstart="onCompositionStart"
-        @compositionend="onCompositionEnd"
-        @input="onInput"
-        @keydown="onKeydown"
-        @keyup="onKeyup"
-        :disabled="finished"
-        placeholder="點此開始輸入（使用注音輸入法）"
-        class="w-full bg-gray-800 border-2 rounded-xl px-4 py-3 text-lg outline-none transition-colors"
-        :class="finished ? 'border-green-600 text-green-400' : 'border-indigo-700 focus:border-indigo-400 text-white'"
-      />
-      <span v-if="composing" class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-400 opacity-70">
-        輸入中…
-      </span>
+    <div class="flex gap-2 items-center">
+      <div class="relative flex-1">
+        <input
+          ref="inputEl"
+          v-model="inputValue"
+          @compositionstart="onCompositionStart"
+          @compositionend="onCompositionEnd"
+          @input="onInput"
+          @keydown="onKeydown"
+          @keyup="onKeyup"
+          :disabled="finished"
+          placeholder="點此開始輸入（使用注音輸入法）"
+          class="w-full bg-gray-800 border-2 rounded-xl px-4 py-3 text-lg outline-none transition-colors"
+          :class="finished ? 'border-green-600 text-green-400' : 'border-indigo-700 focus:border-indigo-400 text-white'"
+        />
+        <span v-if="composing" class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-400 opacity-70">
+          輸入中…
+        </span>
+      </div>
+      <button
+        v-if="!finished"
+        @click="nextSentence"
+        class="px-4 py-3 rounded-xl text-sm font-medium bg-gray-800 text-gray-400 hover:bg-gray-700 transition-colors whitespace-nowrap"
+      >跳過</button>
     </div>
 
     <div class="flex justify-center">
