@@ -3,7 +3,8 @@ import { SENTENCES, type Sentence } from '../data/sentences'
 
 type Level = 1 | 2 | 3
 
-const RSS_PATH = '/rss/Rss_News.aspx?n=9E7AC85F1954DDA8'
+// Dev: Vite proxy at /rss/...  Production: Vercel Edge Function
+const RSS_PATH = import.meta.env.VITE_RSS_API ?? '/rss/Rss_News.aspx?n=9E7AC85F1954DDA8'
 
 // Shared state — fetched once, reused across component instances
 const sentences = ref<Sentence[]>([...SENTENCES])
