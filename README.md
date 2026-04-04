@@ -1,8 +1,8 @@
 # ⌨ 注音打字練習
 
-A typing practice app for Bopomofo (Zhuyin) input method, built with Vue 3 + TypeScript.
+身為一個工程師，打字速度是非常重要的
 
-**[Live Demo](https://typing-practice-roan.vercel.app)**
+**[Demo Page](https://typing-practice-roan.vercel.app)**
 
 ## Features
 
