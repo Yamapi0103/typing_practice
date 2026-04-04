@@ -12,6 +12,10 @@
       <div class="text-3xl font-bold text-gray-300">{{ typed }}</div>
       <div class="text-xs text-gray-400 mt-1">已打字數</div>
     </div>
+    <div class="text-center">
+      <div class="text-3xl font-bold" :class="errors > 0 ? 'text-red-400' : 'text-gray-300'">{{ errors }}</div>
+      <div class="text-xs text-gray-400 mt-1">錯誤次數</div>
+    </div>
   </div>
 </template>
 
@@ -22,6 +26,7 @@ const props = defineProps<{
   wpm: number
   accuracy: number
   typed: number
+  errors: number
 }>()
 
 const accuracyColor = computed(() => {

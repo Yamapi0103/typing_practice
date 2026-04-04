@@ -66,6 +66,7 @@
           v-model="inputValue"
           @compositionstart="onCompositionStart"
           @compositionend="onCompositionEnd"
+          @beforeinput="onBeforeInput"
           @input="onInput"
           @keydown="onKeydown"
           @keyup="onKeyup"
@@ -137,6 +138,7 @@ const finishTime = ref<number | null>(null)
 const finished = ref(false)
 
 const activeKey = ref<string | null>(null)
+const wrongAttempt = ref(false)
 
 const currentChars = computed(() => [...sentence.value.text])
 
@@ -158,8 +160,23 @@ function charClass(i: number) {
   const raw = inputValue.value
   const target = sentence.value.text
   if (i < raw.length) return raw[i] === target[i] ? 'text-green-400' : 'text-red-400'
-  if (i === raw.length) return 'bg-indigo-700/50 text-white'
+  if (i === raw.length) return wrongAttempt.value
+    ? 'bg-red-500/30 text-red-500'
+    : 'bg-indigo-700/50 text-white'
   return 'text-gray-500'
+}
+
+function onBeforeInput(e: InputEvent) {
+  if (lang.value !== 'en' || composing.value) return
+  const char = e.data
+  if (!char || char.length !== 1) return
+  const expected = sentence.value.text[inputValue.value.length]
+  if (char !== expected) {
+    e.preventDefault()
+    wrongAttempt.value = true
+  } else {
+    wrongAttempt.value = false
+  }
 }
 
 function onCompositionStart() {
@@ -263,6 +280,7 @@ function resetPractice(lv: Level | null) {
   finished.value = false
   composing.value = false
   activeKey.value = null
+  wrongAttempt.value = false
   nextTick(() => inputEl.value?.focus())
 }
 
