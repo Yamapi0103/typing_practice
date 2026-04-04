@@ -2,7 +2,7 @@
   <div class="flex gap-6">
     <div class="text-center">
       <div class="text-3xl font-bold text-indigo-400">{{ wpm }}</div>
-      <div class="text-xs text-gray-400 mt-1">字/分鐘</div>
+      <div class="text-xs text-gray-400 mt-1">{{ lang === 'en' ? 'WPM' : '字/分鐘' }}</div>
     </div>
     <div class="text-center">
       <div class="text-3xl font-bold" :class="accuracyColor">{{ accuracy }}%</div>
@@ -27,6 +27,7 @@ const props = defineProps<{
   accuracy: number
   typed: number
   errors: number
+  lang?: string
 }>()
 
 const accuracyColor = computed(() => {

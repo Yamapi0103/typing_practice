@@ -48,22 +48,37 @@
 
     <p v-if="sentencesLoading" class="text-xs text-indigo-400 text-center animate-pulse">正在載入最新題目…</p>
 
-    <div class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center">
+    <div
+      class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center cursor-text"
+      @click="inputEl?.focus()"
+    >
       <p class="text-center text-2xl font-bold leading-relaxed">
-        <span
-          v-for="(char, i) in currentChars"
-          :key="i"
-          class="rounded transition-all"
-          :class="charClass(i)"
-        >{{ char }}</span>
+        <template v-for="(char, i) in currentChars" :key="i">
+          <span
+            class="rounded transition-all"
+            :class="charClass(i)"
+          >{{ char === '\n' ? '↵' : char }}</span><br v-if="char === '\n'" />
+        </template>
       </p>
     </div>
 
-    <div class="flex gap-2 items-center">
+    <!-- invisible input for English keyboard capture -->
+    <input
+      v-if="lang === 'en'"
+      ref="inputEl"
+      :value="''"
+      @beforeinput="onBeforeInput"
+      @keydown="onKeydown"
+      @keyup="onKeyup"
+      :disabled="finished"
+      class="absolute opacity-0 w-0 h-0 pointer-events-none"
+    />
+
+    <div v-if="lang !== 'en'" class="flex gap-2 items-center">
       <div class="relative flex-1">
         <input
           ref="inputEl"
-          v-model="inputValue"
+          :value="inputValue"
           @compositionstart="onCompositionStart"
           @compositionend="onCompositionEnd"
           @beforeinput="onBeforeInput"
@@ -71,7 +86,7 @@
           @keydown="onKeydown"
           @keyup="onKeyup"
           :disabled="finished"
-          :placeholder="lang === 'zh' ? '點此開始輸入（使用注音輸入法）' : 'Click here to start typing'"
+          placeholder="點此開始輸入（使用注音輸入法）"
           class="w-full bg-gray-800 border-2 rounded-xl px-4 py-3 text-lg outline-none transition-colors"
           :class="finished ? 'border-green-600 text-green-400' : 'border-indigo-700 focus:border-indigo-400 text-white'"
         />
@@ -79,15 +94,17 @@
           輸入中…
         </span>
       </div>
+    </div>
+
+    <div v-if="!finished" class="flex justify-center">
       <button
-        v-if="!finished"
         @click="nextSentence"
         class="px-4 py-3 rounded-xl text-sm font-medium bg-gray-800 text-gray-400 hover:bg-gray-700 transition-colors whitespace-nowrap"
       >跳過</button>
     </div>
 
     <div class="flex justify-center">
-      <StatsPanel :wpm="wpm" :accuracy="accuracy" :typed="typedCount" />
+      <StatsPanel :wpm="wpm" :accuracy="accuracy" :typed="typedCount" :errors="errorCount" :lang="lang" />
     </div>
 
     <div class="bg-gray-900 rounded-2xl p-4 overflow-x-auto">
@@ -139,6 +156,7 @@ const finished = ref(false)
 
 const activeKey = ref<string | null>(null)
 const wrongAttempt = ref(false)
+const errorCount = ref(0)
 
 const currentChars = computed(() => [...sentence.value.text])
 
@@ -147,6 +165,11 @@ const typedCount = computed(() =>
 )
 
 const accuracy = computed(() => {
+  if (lang.value === 'en') {
+    const total = typedCount.value + errorCount.value
+    if (total === 0) return 100
+    return Math.round((typedCount.value / total) * 100)
+  }
   const raw = inputValue.value
   const target = sentence.value.text
   const len = Math.min(raw.length, target.length)
@@ -168,14 +191,33 @@ function charClass(i: number) {
 
 function onBeforeInput(e: InputEvent) {
   if (lang.value !== 'en' || composing.value) return
+  const expected = sentence.value.text[inputValue.value.length]
+
+  // Handle Enter key (insertLineBreak) when expected char is \n
+  if (e.inputType === 'insertLineBreak') {
+    e.preventDefault()
+    if (expected === '\n') {
+      inputValue.value += '\n'
+      wrongAttempt.value = false
+      nextTick(() => processInput())
+    } else {
+      wrongAttempt.value = true
+      errorCount.value++
+    }
+    return
+  }
+
   const char = e.data
   if (!char || char.length !== 1) return
-  const expected = sentence.value.text[inputValue.value.length]
+  e.preventDefault()
   if (char !== expected) {
-    e.preventDefault()
     wrongAttempt.value = true
+    errorCount.value++
   } else {
     wrongAttempt.value = false
+    if (!startTime.value) startTime.value = Date.now()
+    inputValue.value += char
+    nextTick(() => processInput())
   }
 }
 
@@ -189,7 +231,9 @@ function onCompositionEnd() {
   nextTick(() => processInput())
 }
 
-function onInput() {
+function onInput(e: Event) {
+  if (lang.value === 'en') return  // inputValue managed manually via onBeforeInput
+  inputValue.value = (e.target as HTMLInputElement).value
   if (!startTime.value) startTime.value = Date.now()
   if (composing.value) return
   processInput()
@@ -209,6 +253,10 @@ function codeToKey(code: string): string | null {
 
 function onKeydown(e: KeyboardEvent) {
   if (finished.value) return
+  if (lang.value === 'en' && e.key === 'Backspace') {
+    e.preventDefault()
+    return
+  }
   const k = codeToKey(e.code)
   if (k) {
     activeKey.value = k
@@ -234,7 +282,8 @@ const wpm = computed(() => {
   if (!startTime.value) return 0
   const elapsed = ((finishTime.value ?? Date.now()) - startTime.value) / 1000 / 60
   if (elapsed <= 0) return 0
-  return Math.round(typedCount.value / elapsed)
+  const count = lang.value === 'en' ? typedCount.value / 5 : typedCount.value
+  return Math.round(count / elapsed)
 })
 
 function saveRecord() {
@@ -281,6 +330,7 @@ function resetPractice(lv: Level | null) {
   composing.value = false
   activeKey.value = null
   wrongAttempt.value = false
+  errorCount.value = 0
   nextTick(() => inputEl.value?.focus())
 }
 
