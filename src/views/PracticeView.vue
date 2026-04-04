@@ -27,6 +27,8 @@
       >全部</button>
     </div>
 
+    <p v-if="sentencesLoading" class="text-xs text-indigo-400 text-center animate-pulse">正在載入最新題目…</p>
+
     <div class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center flex-wrap gap-1">
       <span
         v-for="(char, i) in currentChars"
@@ -85,12 +87,14 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import StatsPanel from '../components/StatsPanel.vue'
 import KeyboardDisplay from '../components/KeyboardDisplay.vue'
-import { getRandomSentence, type Sentence } from '../data/sentences'
+import { useSentences } from '../composables/useSentences'
+import type { Sentence } from '../data/sentences'
 import { useHistoryStore } from '../stores/historyStore'
 import type { CharStat } from '../stores/historyStore'
 import { playKeyClick } from '../composables/useKeySound'
 
 const historyStore = useHistoryStore()
+const { loading: sentencesLoading, fetchSentences, getRandomSentence } = useSentences()
 
 type Level = 1 | 2 | 3
 
@@ -244,6 +248,11 @@ function onGlobalKeydown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onGlobalKeydown))
+onMounted(() => {
+  window.addEventListener('keydown', onGlobalKeydown)
+  fetchSentences().then(() => {
+    if (!startTime.value) sentence.value = getRandomSentence(level.value)
+  })
+})
 onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
 </script>
