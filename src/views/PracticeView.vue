@@ -157,6 +157,7 @@ const finished = ref(false)
 const activeKey = ref<string | null>(null)
 const wrongAttempt = ref(false)
 const errorCount = ref(0)
+const composingStartLen = ref(0)
 
 const currentChars = computed(() => [...sentence.value.text])
 
@@ -182,7 +183,8 @@ const accuracy = computed(() => {
 function charClass(i: number) {
   const raw = inputValue.value
   const target = sentence.value.text
-  if (i < raw.length) return raw[i] === target[i] ? 'text-green-400' : 'text-red-400'
+  const colorUpTo = composing.value ? composingStartLen.value : raw.length
+  if (i < colorUpTo) return raw[i] === target[i] ? 'text-green-400' : 'text-red-400'
   if (i === raw.length) return wrongAttempt.value
     ? 'bg-red-500/30 text-red-500'
     : 'bg-indigo-700/50 text-white'
@@ -223,6 +225,8 @@ function onBeforeInput(e: InputEvent) {
 
 function onCompositionStart() {
   composing.value = true
+  composingStartLen.value = inputValue.value.length
+  console.log("🚀 ~ onCompositionStart ~ composingStartLen:", composingStartLen.value)
   if (!startTime.value) startTime.value = Date.now()
 }
 
