@@ -169,13 +169,7 @@ function onKeydown(e: KeyboardEvent) {
     playKeyClick(k === ' ' ? 'space' : 'normal')
   }
 
-  if (e.key === 'Backspace' && !composing.value) {
-    if (typedCount.value > 0) {
-      typedCount.value--
-      inputValue.value = inputValue.value.slice(0, -1)
-      e.preventDefault()
-    }
-  }
+
 }
 
 function onKeyup() {
