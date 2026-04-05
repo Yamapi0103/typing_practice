@@ -25,6 +25,7 @@
         輸入中…
       </span>
     </div>
+    <slot />
   </div>
 </template>
 

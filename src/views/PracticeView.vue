@@ -25,7 +25,6 @@
 
     <div
       class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center cursor-text"
-      @click="typingInput?.focus()"
     >
       <p class="text-center text-2xl font-bold leading-relaxed">
         <template v-for="(char, i) in currentChars" :key="i">
@@ -46,7 +45,10 @@
       @update:model-value="onInputValue"
       @update:active-key="activeKey = $event"
       @update:wrong-attempt="wrongAttempt = $event"
-      @error="errorCount++; errorKeys.push($event)"
+      @error="
+        errorCount++;
+        errorKeys.push($event);
+      "
       @start="onStart"
     />
 
@@ -60,16 +62,15 @@
       @update:composing="composing = $event"
       @update:composing-start-len="composingStartLen = $event"
       @start="onStart"
-    />
-
-    <div v-if="!finished" class="flex justify-center">
+    >
       <button
+        v-if="!finished"
         @click="nextSentence"
         class="px-4 py-3 rounded-xl text-sm font-medium bg-gray-800 text-gray-400 hover:bg-gray-700 transition-colors whitespace-nowrap"
       >
         跳過
       </button>
-    </div>
+    </ChineseInput>
 
     <div class="flex justify-center">
       <StatsPanel
@@ -78,16 +79,6 @@
         :typed="typedCount"
         :errors="errorCount"
         :lang="lang"
-      />
-    </div>
-
-    <div class="bg-gray-900 rounded-2xl p-4 overflow-x-auto">
-      <p class="text-xs text-gray-500 text-center mb-3">鍵盤指法提示</p>
-      <KeyboardDisplay
-        :compact="false"
-        :show-legend="false"
-        :active-key="activeKey"
-        :error-keys="finished ? errorKeys : []"
       />
     </div>
 
@@ -102,19 +93,31 @@
           >{{ accuracy }}%</strong
         >
       </p>
-      <button
-        @click="nextSentence"
-        class="mt-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-full font-medium transition-colors"
-      >
-        下一句
-      </button>
+      <div class="flex gap-2 justify-center mt-2">
+        <button
+          @click="nextSentence"
+          class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-full font-medium transition-colors"
+        >
+          下一句
+        </button>
+      </div>
       <p class="text-xs text-gray-500 mt-1">或按 Enter 繼續</p>
+    </div>
+
+    <div class="bg-gray-900 rounded-2xl p-4 overflow-x-auto">
+      <p class="text-xs text-gray-500 text-center mb-3">鍵盤指法提示</p>
+      <KeyboardDisplay
+        :compact="false"
+        :show-legend="false"
+        :active-key="activeKey"
+        :error-keys="finished ? errorKeys : []"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import StatsPanel from "../components/StatsPanel.vue";
 import KeyboardDisplay from "../components/KeyboardDisplay.vue";
 import ToggleGroup from "../components/ToggleGroup.vue";
@@ -199,6 +202,10 @@ const charClasses = computed(() => {
         : "bg-indigo-700/50 text-white";
     return "text-gray-500";
   });
+});
+
+watch(finished, val => {
+  if (val) nextTick(() => (document.activeElement as HTMLElement)?.blur());
 });
 
 function onStart() {
