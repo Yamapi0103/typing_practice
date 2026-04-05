@@ -3,58 +3,18 @@
     <h1 class="text-2xl font-bold text-center text-indigo-300">打字練習</h1>
 
     <!-- Language toggle -->
-    <div class="flex gap-2 justify-center">
-      <button
-        @click="selectLang('zh')"
-        :class="[
-          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
-          lang === 'zh'
-            ? 'bg-indigo-600 text-white'
-            : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
-        ]"
-      >
-        中文
-      </button>
-      <button
-        @click="selectLang('en')"
-        :class="[
-          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
-          lang === 'en'
-            ? 'bg-indigo-600 text-white'
-            : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
-        ]"
-      >
-        English
-      </button>
-    </div>
+    <ToggleGroup
+      :options="langOptions"
+      :model-value="lang"
+      @update:model-value="selectLang"
+    />
 
     <!-- Level buttons -->
-    <div class="flex gap-2 justify-center">
-      <button
-        v-for="lv in [1, 2, 3] as const"
-        :key="lv"
-        @click="selectLevel(lv)"
-        :class="[
-          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
-          level === lv
-            ? 'bg-indigo-600 text-white'
-            : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
-        ]"
-      >
-        {{ (["初級", "中級", "高級"] as const)[lv - 1] }}
-      </button>
-      <button
-        @click="selectLevel(null)"
-        :class="[
-          'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
-          level === null
-            ? 'bg-indigo-600 text-white'
-            : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
-        ]"
-      >
-        全部
-      </button>
-    </div>
+    <ToggleGroup
+      :options="levelOptions"
+      :model-value="level"
+      @update:model-value="selectLevel"
+    />
 
     <p
       v-if="sentencesLoading"
@@ -65,7 +25,7 @@
 
     <div
       class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center cursor-text"
-      @click="inputEl?.focus()"
+      @click="typingInput?.focus()"
     >
       <p class="text-center text-2xl font-bold leading-relaxed">
         <template v-for="(char, i) in currentChars" :key="i">
@@ -77,46 +37,30 @@
       </p>
     </div>
 
-    <!-- invisible input for English keyboard capture -->
-    <input
+    <EnglishInput
       v-if="lang === 'en'"
-      ref="inputEl"
-      :value="''"
-      @beforeinput="onBeforeInput"
-      @keydown="onKeydown"
-      @keyup="onKeyup"
+      ref="typingInput"
+      :target="sentence.text"
       :disabled="finished"
-      class="absolute opacity-0 w-0 h-0 pointer-events-none"
+      :model-value="inputValue"
+      @update:model-value="onInputValue"
+      @update:active-key="activeKey = $event"
+      @update:wrong-attempt="wrongAttempt = $event"
+      @error="errorCount++"
+      @start="onStart"
     />
 
-    <div v-if="lang !== 'en'" class="flex gap-2 items-center">
-      <div class="relative flex-1">
-        <input
-          ref="inputEl"
-          :value="inputValue"
-          @compositionstart="onCompositionStart"
-          @compositionend="onCompositionEnd"
-          @beforeinput="onBeforeInput"
-          @input="onInput"
-          @keydown="onKeydown"
-          @keyup="onKeyup"
-          :disabled="finished"
-          placeholder="點此開始輸入（使用注音輸入法）"
-          class="w-full bg-gray-800 border-2 rounded-xl px-4 py-3 text-lg outline-none transition-colors"
-          :class="
-            finished
-              ? 'border-green-600 text-green-400'
-              : 'border-indigo-700 focus:border-indigo-400 text-white'
-          "
-        />
-        <span
-          v-if="composing"
-          class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-400 opacity-70"
-        >
-          輸入中…
-        </span>
-      </div>
-    </div>
+    <ChineseInput
+      v-else
+      ref="typingInput"
+      :disabled="finished"
+      :model-value="inputValue"
+      @update:model-value="onInputValue"
+      @update:active-key="activeKey = $event"
+      @update:composing="composing = $event"
+      @update:composing-start-len="composingStartLen = $event"
+      @start="onStart"
+    />
 
     <div v-if="!finished" class="flex justify-center">
       <button
@@ -172,11 +116,13 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import StatsPanel from "../components/StatsPanel.vue";
 import KeyboardDisplay from "../components/KeyboardDisplay.vue";
+import ToggleGroup from "../components/ToggleGroup.vue";
+import EnglishInput from "../components/EnglishInput.vue";
+import ChineseInput from "../components/ChineseInput.vue";
 import { useSentences, type Lang } from "../composables/useSentences";
 import type { Sentence } from "../data/sentences";
 import { useHistoryStore } from "../stores/historyStore";
 import type { CharStat } from "../stores/historyStore";
-import { playKeyClick } from "../composables/useKeySound";
 
 const historyStore = useHistoryStore();
 const {
@@ -190,11 +136,24 @@ const {
 
 type Level = 1 | 2 | 3;
 
+const langOptions = [
+  { value: "zh" as Lang, label: "中文" },
+  { value: "en" as Lang, label: "English" },
+];
+
+const levelOptions = [
+  { value: 1 as Level, label: "初級" },
+  { value: 2 as Level, label: "中級" },
+  { value: 3 as Level, label: "高級" },
+  { value: null as Level | null, label: "全部" },
+];
+
 const level = ref<Level | null>(1);
 const sentence = ref<Sentence>(getRandomSentence(1));
 const inputValue = ref("");
 const composing = ref(false);
-const inputEl = ref<HTMLInputElement | null>(null);
+const composingStartLen = ref(0);
+const typingInput = ref<{ focus: () => void } | null>(null);
 
 const startTime = ref<number | null>(null);
 const finishTime = ref<number | null>(null);
@@ -203,7 +162,6 @@ const finished = ref(false);
 const activeKey = ref<string | null>(null);
 const wrongAttempt = ref(false);
 const errorCount = ref(0);
-const composingStartLen = ref(0);
 
 const currentChars = computed(() => [...sentence.value.text]);
 
@@ -241,101 +199,13 @@ const charClasses = computed(() => {
   });
 });
 
-function onBeforeInput(e: InputEvent) {
-  if (lang.value !== "en" || composing.value) return;
-  const expected = sentence.value.text[inputValue.value.length];
-
-  // Handle Enter key (insertLineBreak) when expected char is \n
-  if (e.inputType === "insertLineBreak") {
-    e.preventDefault();
-    if (expected === "\n") {
-      inputValue.value += "\n";
-      wrongAttempt.value = false;
-      nextTick(() => processInput());
-    } else {
-      wrongAttempt.value = true;
-      errorCount.value++;
-    }
-    return;
-  }
-
-  const char = e.data;
-  if (!char || char.length !== 1) return;
-  e.preventDefault();
-  if (char !== expected) {
-    wrongAttempt.value = true;
-    errorCount.value++;
-  } else {
-    wrongAttempt.value = false;
-    if (!startTime.value) startTime.value = Date.now();
-    inputValue.value += char;
-    nextTick(() => processInput());
-  }
-}
-
-function onCompositionStart() {
-  composing.value = true;
-  composingStartLen.value = inputValue.value.length;
-  console.log(
-    "🚀 ~ onCompositionStart ~ composingStartLen:",
-    composingStartLen.value,
-  );
+function onStart() {
   if (!startTime.value) startTime.value = Date.now();
 }
 
-function onCompositionEnd() {
-  composing.value = false;
-  nextTick(() => processInput());
-}
-
-function onInput(e: Event) {
-  if (lang.value === "en") return; // inputValue managed manually via onBeforeInput
-  inputValue.value = (e.target as HTMLInputElement).value;
-  if (!startTime.value) startTime.value = Date.now();
-  if (composing.value) return;
-  processInput();
-}
-
-function codeToKey(code: string): string | null {
-  if (code === "Space") return " ";
-  if (code.startsWith("Key")) return code.slice(3).toLowerCase();
-  if (code.startsWith("Digit")) return code.slice(5);
-  const map: Record<string, string> = {
-    Minus: "-",
-    Equal: "=",
-    BracketLeft: "[",
-    BracketRight: "]",
-    Semicolon: ";",
-    Quote: "'",
-    Comma: ",",
-    Period: ".",
-    Slash: "/",
-    Backquote: "`",
-  };
-  return map[code] ?? null;
-}
-
-function onKeydown(e: KeyboardEvent) {
-  if (finished.value) return;
-  if (lang.value === "en" && e.key === "Backspace") {
-    e.preventDefault();
-    return;
-  }
-  const k = codeToKey(e.code);
-  if (k) {
-    activeKey.value = k;
-    playKeyClick(k === " " ? "space" : "normal");
-  }
-}
-
-function onKeyup() {
-  activeKey.value = null;
-}
-
-function processInput() {
-  const target = sentence.value.text;
-  const raw = inputValue.value;
-  if (raw === target) {
+function onInputValue(val: string) {
+  inputValue.value = val;
+  if (!composing.value && val === sentence.value.text) {
     finishTime.value = Date.now();
     finished.value = true;
     saveRecord();
@@ -396,7 +266,7 @@ function resetPractice(lv: Level | null) {
   activeKey.value = null;
   wrongAttempt.value = false;
   errorCount.value = 0;
-  nextTick(() => inputEl.value?.focus());
+  nextTick(() => typingInput.value?.focus());
 }
 
 function onGlobalKeydown(e: KeyboardEvent) {

@@ -19,12 +19,7 @@
           )
         "
         class="relative flex flex-col items-center justify-center rounded border text-xs font-mono cursor-pointer"
-        :class="[
-          compact ? 'w-9 h-9' : 'w-12 h-12',
-          pressedKey === keyDef.key || activeKey === keyDef.key
-            ? 'pressed'
-            : 'opacity-90',
-        ]"
+        :class="[compact ? 'w-9 h-9' : 'w-12 h-12']"
         @mousedown="handlePress(keyDef.key)"
         @touchstart.prevent="handlePress(keyDef.key)"
       >
@@ -48,10 +43,7 @@
     <div class="flex justify-center mt-1">
       <div
         class="rounded border border-gray-600 flex items-center justify-center text-xs cursor-pointer relative overflow-hidden"
-        :class="[
-          compact ? 'w-48 h-9' : 'w-64 h-12',
-          pressedKey === ' ' || activeKey === ' ' ? 'pressed' : 'opacity-70',
-        ]"
+        :class="[compact ? 'w-48 h-9' : 'w-64 h-12']"
         :style="{
           backgroundColor:
             FINGER_COLORS['L5'] +
