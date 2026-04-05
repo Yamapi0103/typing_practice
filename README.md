@@ -12,12 +12,18 @@
   - English：從 [type.fit](https://type.fit) 抓取英文句子，依難度分級
 - **統計紀錄** — Persistent stats tracking WPM, accuracy, and practice history.
 
+## Login
+
+- Sign in with **Google account** — typing history is saved to the cloud and accessible across devices
+- Powered by [Supabase](https://supabase.com) Auth + PostgreSQL
+
 ## Tech Stack
 
 - [Vue 3](https://vuejs.org/) + [TypeScript](https://www.typescriptlang.org/)
 - [Vite](https://vitejs.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
-- [Pinia](https://pinia.vuejs.org/) (with persisted state)
+- [Pinia](https://pinia.vuejs.org/)
+- [Supabase](https://supabase.com) (Auth + Database)
 - [Vue Router](https://router.vuejs.org/)
 
 ## Development
