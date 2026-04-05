@@ -5,16 +5,16 @@
     <div class="grid grid-cols-3 gap-4">
       <div class="bg-gray-900 rounded-xl p-4 text-center">
         <div class="text-3xl font-bold text-indigo-400">
-          {{ store.records.length }}
+          {{ records.length }}
         </div>
         <div class="text-xs text-gray-400 mt-1">練習次數</div>
       </div>
       <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <div class="text-3xl font-bold text-green-400">{{ store.bestWpm }}</div>
+        <div class="text-3xl font-bold text-green-400">{{ bestWpm }}</div>
         <div class="text-xs text-gray-400 mt-1">最高 WPM</div>
       </div>
       <div class="bg-gray-900 rounded-xl p-4 text-center">
-        <div class="text-3xl font-bold text-yellow-400">{{ store.avgWpm }}</div>
+        <div class="text-3xl font-bold text-yellow-400">{{ avgWpm }}</div>
         <div class="text-xs text-gray-400 mt-1">平均 WPM</div>
       </div>
     </div>
@@ -34,14 +34,14 @@
         </button>
       </div>
       <div
-        v-if="store.records.length === 0"
+        v-if="records.length === 0"
         class="text-gray-500 text-sm text-center py-4"
       >
         尚無練習紀錄，快去打字吧！
       </div>
       <div v-else class="space-y-2 max-h-96 overflow-y-auto">
         <div
-          v-for="(r, i) in store.records"
+          v-for="(r, i) in records"
           :key="i"
           class="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 text-sm"
         >
@@ -71,10 +71,62 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
 import CharErrorList from "../components/CharErrorList.vue";
 import { useHistoryStore } from "../stores/historyStore";
+import { useAuth } from "../composables/useAuth";
+import { supabase } from "../lib/supabase";
 
 const store = useHistoryStore();
+const { user } = useAuth();
+
+interface DbRecord {
+  id: string;
+  lang: string;
+  sentence: string;
+  wpm: number;
+  accuracy: number;
+  created_at: string;
+}
+
+const dbRecords = ref<DbRecord[]>([]);
+const loading = ref(false);
+
+onMounted(async () => {
+  if (!user.value) return;
+  loading.value = true;
+  const { data } = await supabase
+    .from("typing_records")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  dbRecords.value = data ?? [];
+  loading.value = false;
+});
+
+const records = computed(() =>
+  user.value
+    ? dbRecords.value.map(r => ({
+        date: r.created_at,
+        wpm: r.wpm,
+        accuracy: r.accuracy,
+        charCount: r.sentence.length,
+        duration: 0,
+      }))
+    : store.records,
+);
+
+const bestWpm = computed(() =>
+  records.value.length ? Math.max(...records.value.map(r => r.wpm)) : 0,
+);
+
+const avgWpm = computed(() =>
+  records.value.length
+    ? Math.round(
+        records.value.reduce((s, r) => s + r.wpm, 0) / records.value.length,
+      )
+    : 0,
+);
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
