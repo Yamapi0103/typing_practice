@@ -6,7 +6,7 @@
     @keydown="onKeydown"
     @keyup="$emit('update:activeKey', null)"
     :disabled="disabled"
-    class="absolute opacity-0 w-0 h-0 pointer-events-none"
+    class="absolute opacity-0"
   />
 </template>
 
