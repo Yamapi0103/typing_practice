@@ -113,7 +113,11 @@ async function fetchEn(): Promise<void> {
 function switchLang(l: Lang): void {
   lang.value = l;
   localStorage.setItem("lang", l);
-  if (l === "en") fetchEn();
+  if (l === "en") {
+    fetchEn();
+  } else {
+    fetchZh();
+  }
 }
 
 function getRandomSentence(level: Level | null = null): Sentence {

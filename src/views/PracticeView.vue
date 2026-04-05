@@ -263,7 +263,6 @@ function saveRecord() {
 function selectLang(l: Lang) {
   switchLang(l);
   resetPractice(level.value);
-  if (l === "en") fetchEn();
 }
 
 function selectLevel(lv: Level | null) {
