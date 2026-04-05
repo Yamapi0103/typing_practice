@@ -56,9 +56,12 @@ function onCompositionStart() {
   emit("start");
 }
 
-function onCompositionEnd() {
+function onCompositionEnd(e: Event) {
+  // 先更新 composing 狀態
   composing.value = false;
   emit("update:composing", false);
+  // 然後重新觸發 modelValue 更新，此時 composing 已經是 false，父元件可以正確驗證
+  emit("update:modelValue", (e.target as HTMLInputElement).value);
 }
 
 function onInput(e: Event) {
