@@ -24,7 +24,6 @@
     </p>
 
     <div
-      @click="typingInput?.focus()"
       class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center cursor-text"
     >
       <p class="text-center text-2xl font-bold leading-relaxed">
