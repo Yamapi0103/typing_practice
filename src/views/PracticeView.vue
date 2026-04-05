@@ -8,22 +8,30 @@
         @click="selectLang('zh')"
         :class="[
           'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
-          lang === 'zh' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
+          lang === 'zh'
+            ? 'bg-indigo-600 text-white'
+            : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
         ]"
-      >中文</button>
+      >
+        中文
+      </button>
       <button
         @click="selectLang('en')"
         :class="[
           'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
-          lang === 'en' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
+          lang === 'en'
+            ? 'bg-indigo-600 text-white'
+            : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
         ]"
-      >English</button>
+      >
+        English
+      </button>
     </div>
 
     <!-- Level buttons -->
     <div class="flex gap-2 justify-center">
       <button
-        v-for="lv in ([1, 2, 3] as const)"
+        v-for="lv in [1, 2, 3] as const"
         :key="lv"
         @click="selectLevel(lv)"
         :class="[
@@ -33,7 +41,7 @@
             : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
         ]"
       >
-        {{ (['初級', '中級', '高級'] as const)[lv - 1] }}
+        {{ (["初級", "中級", "高級"] as const)[lv - 1] }}
       </button>
       <button
         @click="selectLevel(null)"
@@ -43,10 +51,17 @@
             ? 'bg-indigo-600 text-white'
             : 'bg-gray-800 text-gray-400 hover:bg-gray-700',
         ]"
-      >全部</button>
+      >
+        全部
+      </button>
     </div>
 
-    <p v-if="sentencesLoading" class="text-xs text-indigo-400 text-center animate-pulse">正在載入最新題目…</p>
+    <p
+      v-if="sentencesLoading"
+      class="text-xs text-indigo-400 text-center animate-pulse"
+    >
+      正在載入最新題目…
+    </p>
 
     <div
       class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center cursor-text"
@@ -54,10 +69,10 @@
     >
       <p class="text-center text-2xl font-bold leading-relaxed">
         <template v-for="(char, i) in currentChars" :key="i">
-          <span
-            class="rounded transition-all"
-            :class="charClasses[i]"
-          >{{ char === '\n' ? '↵' : char }}</span><br v-if="char === '\n'" />
+          <span class="rounded transition-all" :class="charClasses[i]">{{
+            char === "\n" ? "↵" : char
+          }}</span
+          ><br v-if="char === '\n'" />
         </template>
       </p>
     </div>
@@ -88,9 +103,16 @@
           :disabled="finished"
           placeholder="點此開始輸入（使用注音輸入法）"
           class="w-full bg-gray-800 border-2 rounded-xl px-4 py-3 text-lg outline-none transition-colors"
-          :class="finished ? 'border-green-600 text-green-400' : 'border-indigo-700 focus:border-indigo-400 text-white'"
+          :class="
+            finished
+              ? 'border-green-600 text-green-400'
+              : 'border-indigo-700 focus:border-indigo-400 text-white'
+          "
         />
-        <span v-if="composing" class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-400 opacity-70">
+        <span
+          v-if="composing"
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-indigo-400 opacity-70"
+        >
           輸入中…
         </span>
       </div>
@@ -100,23 +122,40 @@
       <button
         @click="nextSentence"
         class="px-4 py-3 rounded-xl text-sm font-medium bg-gray-800 text-gray-400 hover:bg-gray-700 transition-colors whitespace-nowrap"
-      >跳過</button>
+      >
+        跳過
+      </button>
     </div>
 
     <div class="flex justify-center">
-      <StatsPanel :wpm="wpm" :accuracy="accuracy" :typed="typedCount" :errors="errorCount" :lang="lang" />
+      <StatsPanel
+        :wpm="wpm"
+        :accuracy="accuracy"
+        :typed="typedCount"
+        :errors="errorCount"
+        :lang="lang"
+      />
     </div>
 
     <div class="bg-gray-900 rounded-2xl p-4 overflow-x-auto">
       <p class="text-xs text-gray-500 text-center mb-3">鍵盤指法提示</p>
-      <KeyboardDisplay :compact="false" :show-legend="false" :active-key="activeKey" />
+      <KeyboardDisplay
+        :compact="false"
+        :show-legend="false"
+        :active-key="activeKey"
+      />
     </div>
 
-    <div v-if="finished" class="bg-green-900/40 border border-green-700 rounded-xl p-4 text-center space-y-2">
+    <div
+      v-if="finished"
+      class="bg-green-900/40 border border-green-700 rounded-xl p-4 text-center space-y-2"
+    >
       <p class="text-green-300 font-semibold text-lg">完成！</p>
       <p class="text-sm text-gray-300">
-        速度 <strong class="text-indigo-300">{{ wpm }}</strong> 字/分 ·
-        正確率 <strong :class="accuracy >= 95 ? 'text-green-300' : 'text-yellow-300'">{{ accuracy }}%</strong>
+        速度 <strong class="text-indigo-300">{{ wpm }}</strong> 字/分 · 正確率
+        <strong :class="accuracy >= 95 ? 'text-green-300' : 'text-yellow-300'"
+          >{{ accuracy }}%</strong
+        >
       </p>
       <button
         @click="nextSentence"
@@ -130,231 +169,249 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
-import StatsPanel from '../components/StatsPanel.vue'
-import KeyboardDisplay from '../components/KeyboardDisplay.vue'
-import { useSentences, type Lang } from '../composables/useSentences'
-import type { Sentence } from '../data/sentences'
-import { useHistoryStore } from '../stores/historyStore'
-import type { CharStat } from '../stores/historyStore'
-import { playKeyClick } from '../composables/useKeySound'
+import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
+import StatsPanel from "../components/StatsPanel.vue";
+import KeyboardDisplay from "../components/KeyboardDisplay.vue";
+import { useSentences, type Lang } from "../composables/useSentences";
+import type { Sentence } from "../data/sentences";
+import { useHistoryStore } from "../stores/historyStore";
+import type { CharStat } from "../stores/historyStore";
+import { playKeyClick } from "../composables/useKeySound";
 
-const historyStore = useHistoryStore()
-const { lang, loading: sentencesLoading, fetchZh, fetchEn, switchLang, getRandomSentence } = useSentences()
+const historyStore = useHistoryStore();
+const {
+  lang,
+  loading: sentencesLoading,
+  fetchZh,
+  fetchEn,
+  switchLang,
+  getRandomSentence,
+} = useSentences();
 
-type Level = 1 | 2 | 3
+type Level = 1 | 2 | 3;
 
-const level = ref<Level | null>(1)
-const sentence = ref<Sentence>(getRandomSentence(1))
-const inputValue = ref('')
-const composing = ref(false)
-const inputEl = ref<HTMLInputElement | null>(null)
+const level = ref<Level | null>(1);
+const sentence = ref<Sentence>(getRandomSentence(1));
+const inputValue = ref("");
+const composing = ref(false);
+const inputEl = ref<HTMLInputElement | null>(null);
 
-const startTime = ref<number | null>(null)
-const finishTime = ref<number | null>(null)
-const finished = ref(false)
+const startTime = ref<number | null>(null);
+const finishTime = ref<number | null>(null);
+const finished = ref(false);
 
-const activeKey = ref<string | null>(null)
-const wrongAttempt = ref(false)
-const errorCount = ref(0)
-const composingStartLen = ref(0)
+const activeKey = ref<string | null>(null);
+const wrongAttempt = ref(false);
+const errorCount = ref(0);
+const composingStartLen = ref(0);
 
-const currentChars = computed(() => [...sentence.value.text])
+const currentChars = computed(() => [...sentence.value.text]);
 
 const typedCount = computed(() =>
-  Math.min(inputValue.value.length, sentence.value.text.length)
-)
+  Math.min(inputValue.value.length, sentence.value.text.length),
+);
 
 const accuracy = computed(() => {
-  if (lang.value === 'en') {
-    const total = typedCount.value + errorCount.value
-    if (total === 0) return 100
-    return Math.round((typedCount.value / total) * 100)
+  if (lang.value === "en") {
+    const total = typedCount.value + errorCount.value;
+    if (total === 0) return 100;
+    return Math.round((typedCount.value / total) * 100);
   }
-  const raw = inputValue.value
-  const target = sentence.value.text
-  const len = Math.min(raw.length, target.length)
-  if (len === 0) return 100
-  let correct = 0
-  for (let i = 0; i < len; i++) if (raw[i] === target[i]) correct++
-  return Math.round((correct / len) * 100)
-})
+  const raw = inputValue.value;
+  const target = sentence.value.text;
+  const len = Math.min(raw.length, target.length);
+  if (len === 0) return 100;
+  let correct = 0;
+  for (let i = 0; i < len; i++) if (raw[i] === target[i]) correct++;
+  return Math.round((correct / len) * 100);
+});
 
 const charClasses = computed(() => {
-  const raw = inputValue.value
-  const target = sentence.value.text
-  const colorUpTo = composing.value ? composingStartLen.value : raw.length
+  const raw = inputValue.value;
+  const target = sentence.value.text;
+  const colorUpTo = composing.value ? composingStartLen.value : raw.length;
   return currentChars.value.map((_, i) => {
-    if (i < colorUpTo) return raw[i] === target[i] ? 'text-green-400' : 'text-red-400'
-    if (i === raw.length) return wrongAttempt.value
-      ? 'bg-red-500/30 text-red-500'
-      : 'bg-indigo-700/50 text-white'
-    return 'text-gray-500'
-  })
-})
+    if (i < colorUpTo)
+      return raw[i] === target[i] ? "text-green-400" : "text-red-400";
+    if (i === raw.length)
+      return wrongAttempt.value
+        ? "bg-red-500/30 text-red-500"
+        : "bg-indigo-700/50 text-white";
+    return "text-gray-500";
+  });
+});
 
 function onBeforeInput(e: InputEvent) {
-  if (lang.value !== 'en' || composing.value) return
-  const expected = sentence.value.text[inputValue.value.length]
+  if (lang.value !== "en" || composing.value) return;
+  const expected = sentence.value.text[inputValue.value.length];
 
   // Handle Enter key (insertLineBreak) when expected char is \n
-  if (e.inputType === 'insertLineBreak') {
-    e.preventDefault()
-    if (expected === '\n') {
-      inputValue.value += '\n'
-      wrongAttempt.value = false
-      nextTick(() => processInput())
+  if (e.inputType === "insertLineBreak") {
+    e.preventDefault();
+    if (expected === "\n") {
+      inputValue.value += "\n";
+      wrongAttempt.value = false;
+      nextTick(() => processInput());
     } else {
-      wrongAttempt.value = true
-      errorCount.value++
+      wrongAttempt.value = true;
+      errorCount.value++;
     }
-    return
+    return;
   }
 
-  const char = e.data
-  if (!char || char.length !== 1) return
-  e.preventDefault()
+  const char = e.data;
+  if (!char || char.length !== 1) return;
+  e.preventDefault();
   if (char !== expected) {
-    wrongAttempt.value = true
-    errorCount.value++
+    wrongAttempt.value = true;
+    errorCount.value++;
   } else {
-    wrongAttempt.value = false
-    if (!startTime.value) startTime.value = Date.now()
-    inputValue.value += char
-    nextTick(() => processInput())
+    wrongAttempt.value = false;
+    if (!startTime.value) startTime.value = Date.now();
+    inputValue.value += char;
+    nextTick(() => processInput());
   }
 }
 
 function onCompositionStart() {
-  composing.value = true
-  composingStartLen.value = inputValue.value.length
-  console.log("🚀 ~ onCompositionStart ~ composingStartLen:", composingStartLen.value)
-  if (!startTime.value) startTime.value = Date.now()
+  composing.value = true;
+  composingStartLen.value = inputValue.value.length;
+  console.log(
+    "🚀 ~ onCompositionStart ~ composingStartLen:",
+    composingStartLen.value,
+  );
+  if (!startTime.value) startTime.value = Date.now();
 }
 
 function onCompositionEnd() {
-  composing.value = false
-  nextTick(() => processInput())
+  composing.value = false;
+  nextTick(() => processInput());
 }
 
 function onInput(e: Event) {
-  if (lang.value === 'en') return  // inputValue managed manually via onBeforeInput
-  inputValue.value = (e.target as HTMLInputElement).value
-  if (!startTime.value) startTime.value = Date.now()
-  if (composing.value) return
-  processInput()
+  if (lang.value === "en") return; // inputValue managed manually via onBeforeInput
+  inputValue.value = (e.target as HTMLInputElement).value;
+  if (!startTime.value) startTime.value = Date.now();
+  if (composing.value) return;
+  processInput();
 }
 
 function codeToKey(code: string): string | null {
-  if (code === 'Space') return ' '
-  if (code.startsWith('Key')) return code.slice(3).toLowerCase()
-  if (code.startsWith('Digit')) return code.slice(5)
+  if (code === "Space") return " ";
+  if (code.startsWith("Key")) return code.slice(3).toLowerCase();
+  if (code.startsWith("Digit")) return code.slice(5);
   const map: Record<string, string> = {
-    Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']',
-    Semicolon: ';', Quote: "'", Comma: ',', Period: '.', Slash: '/',
-    Backquote: '`',
-  }
-  return map[code] ?? null
+    Minus: "-",
+    Equal: "=",
+    BracketLeft: "[",
+    BracketRight: "]",
+    Semicolon: ";",
+    Quote: "'",
+    Comma: ",",
+    Period: ".",
+    Slash: "/",
+    Backquote: "`",
+  };
+  return map[code] ?? null;
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (finished.value) return
-  if (lang.value === 'en' && e.key === 'Backspace') {
-    e.preventDefault()
-    return
+  if (finished.value) return;
+  if (lang.value === "en" && e.key === "Backspace") {
+    e.preventDefault();
+    return;
   }
-  const k = codeToKey(e.code)
+  const k = codeToKey(e.code);
   if (k) {
-    activeKey.value = k
-    playKeyClick(k === ' ' ? 'space' : 'normal')
+    activeKey.value = k;
+    playKeyClick(k === " " ? "space" : "normal");
   }
 }
 
 function onKeyup() {
-  activeKey.value = null
+  activeKey.value = null;
 }
 
 function processInput() {
-  const target = sentence.value.text
-  const raw = inputValue.value
+  const target = sentence.value.text;
+  const raw = inputValue.value;
   if (raw === target) {
-    finishTime.value = Date.now()
-    finished.value = true
-    saveRecord()
+    finishTime.value = Date.now();
+    finished.value = true;
+    saveRecord();
   }
 }
 
 const wpm = computed(() => {
-  if (!startTime.value) return 0
-  const elapsed = ((finishTime.value ?? Date.now()) - startTime.value) / 1000 / 60
-  if (elapsed <= 0) return 0
-  const count = lang.value === 'en' ? typedCount.value / 5 : typedCount.value
-  return Math.round(count / elapsed)
-})
+  if (!startTime.value) return 0;
+  const elapsed =
+    ((finishTime.value ?? Date.now()) - startTime.value) / 1000 / 60;
+  if (elapsed <= 0) return 0;
+  const count = lang.value === "en" ? typedCount.value / 5 : typedCount.value;
+  return Math.round(count / elapsed);
+});
 
 function saveRecord() {
-  const target = sentence.value.text
-  const raw = inputValue.value
-  const charErrors: Record<string, CharStat> = {}
+  const target = sentence.value.text;
+  const raw = inputValue.value;
+  const charErrors: Record<string, CharStat> = {};
   for (let i = 0; i < target.length; i++) {
-    const char = target[i]
-    if (!charErrors[char]) charErrors[char] = { total: 0, errors: 0 }
-    charErrors[char].total++
-    if (raw[i] !== char) charErrors[char].errors++
+    const char = target[i];
+    if (!charErrors[char]) charErrors[char] = { total: 0, errors: 0 };
+    charErrors[char].total++;
+    if (raw[i] !== char) charErrors[char].errors++;
   }
-  const duration = (finishTime.value! - startTime.value!) / 1000
+  const duration = (finishTime.value! - startTime.value!) / 1000;
   historyStore.addRecord({
     wpm: wpm.value,
     accuracy: accuracy.value,
     charCount: typedCount.value,
     duration,
     charErrors,
-  })
+  });
 }
 
 function selectLang(l: Lang) {
-  switchLang(l)
-  resetPractice(level.value)
-  if (l === 'en') fetchEn()
+  switchLang(l);
+  resetPractice(level.value);
+  if (l === "en") fetchEn();
 }
 
 function selectLevel(lv: Level | null) {
-  level.value = lv
-  resetPractice(lv)
+  level.value = lv;
+  resetPractice(lv);
 }
 
 function nextSentence() {
-  resetPractice(level.value)
+  resetPractice(level.value);
 }
 
 function resetPractice(lv: Level | null) {
-  sentence.value = getRandomSentence(lv)
-  inputValue.value = ''
-  startTime.value = null
-  finishTime.value = null
-  finished.value = false
-  composing.value = false
-  activeKey.value = null
-  wrongAttempt.value = false
-  errorCount.value = 0
-  nextTick(() => inputEl.value?.focus())
+  sentence.value = getRandomSentence(lv);
+  inputValue.value = "";
+  startTime.value = null;
+  finishTime.value = null;
+  finished.value = false;
+  composing.value = false;
+  activeKey.value = null;
+  wrongAttempt.value = false;
+  errorCount.value = 0;
+  nextTick(() => inputEl.value?.focus());
 }
 
 function onGlobalKeydown(e: KeyboardEvent) {
-  if (finished.value && e.code === 'Enter') {
-    e.preventDefault()
-    nextSentence()
+  if (finished.value && e.code === "Enter") {
+    e.preventDefault();
+    nextSentence();
   }
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', onGlobalKeydown)
-  const init = lang.value === 'en'
-    ? fetchEn()
-    : fetchZh()
+  window.addEventListener("keydown", onGlobalKeydown);
+  const init = lang.value === "en" ? fetchEn() : fetchZh();
   init.then(() => {
-    if (!startTime.value) sentence.value = getRandomSentence(level.value)
-  })
-})
-onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
+    if (!startTime.value) sentence.value = getRandomSentence(level.value);
+  });
+});
+onUnmounted(() => window.removeEventListener("keydown", onGlobalKeydown));
 </script>
