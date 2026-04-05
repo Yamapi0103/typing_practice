@@ -3,6 +3,8 @@
     ref="inputEl"
     :value="''"
     @beforeinput="onBeforeInput"
+    @compositionstart="onCompositionStart"
+    @compositionend="onCompositionEnd"
     @keydown="onKeydown"
     @keyup="$emit('update:activeKey', null)"
     :disabled="disabled"
@@ -24,13 +26,31 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
   "update:activeKey": [key: string | null];
   "update:wrongAttempt": [value: boolean];
+  "update:imeDetected": [value: boolean];
   error: [key: string];
   start: [];
 }>();
 
 const inputEl = ref<HTMLInputElement | null>(null);
+const isComposing = ref(false);
+
+function onCompositionStart() {
+  isComposing.value = true;
+  emit("update:imeDetected", true);
+}
+
+function onCompositionEnd() {
+  isComposing.value = false;
+  emit("update:imeDetected", false);
+}
 
 function onBeforeInput(e: InputEvent) {
+  // 如果正在使用輸入法，阻止處理
+  if (isComposing.value) {
+    e.preventDefault();
+    return;
+  }
+
   const expected = props.target[props.modelValue.length];
 
   if (e.inputType === "insertLineBreak") {

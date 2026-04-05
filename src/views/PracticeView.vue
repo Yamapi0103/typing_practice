@@ -37,6 +37,13 @@
       </p>
     </div>
 
+    <p
+      v-if="lang === 'en' && imeDetected"
+      class="text-sm text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 rounded-lg px-4 py-2 text-center"
+    >
+      ⚠️ 偵測到中文輸入法，請切換為英文輸入法
+    </p>
+
     <EnglishInput
       v-if="lang === 'en'"
       ref="typingInput"
@@ -46,6 +53,7 @@
       @update:model-value="onInputValue"
       @update:active-key="activeKey = $event"
       @update:wrong-attempt="wrongAttempt = $event"
+      @update:ime-detected="imeDetected = $event"
       @error="
         errorCount++;
         errorKeys.push($event);
@@ -168,6 +176,7 @@ const activeKey = ref<string | null>(null);
 const wrongAttempt = ref(false);
 const errorCount = ref(0);
 const errorKeys = ref<string[]>([]);
+const imeDetected = ref(false);
 
 const currentChars = computed(() => [...sentence.value.text]);
 
@@ -277,6 +286,7 @@ function resetPractice(lv: Level | null) {
   wrongAttempt.value = false;
   errorCount.value = 0;
   errorKeys.value = [];
+  imeDetected.value = false;
   nextTick(() => typingInput.value?.focus());
 }
 
