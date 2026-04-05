@@ -77,4 +77,4 @@ export const useHistoryStore = defineStore('history', () => {
   }
 
   return { records, charStats, weakChars, bestWpm, avgWpm, addRecord, clearAll }
-})
+}, { persist: true })
