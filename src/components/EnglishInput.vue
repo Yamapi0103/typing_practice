@@ -24,7 +24,7 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
   "update:activeKey": [key: string | null];
   "update:wrongAttempt": [value: boolean];
-  error: [];
+  error: [key: string];
   start: [];
 }>();
 
@@ -40,7 +40,7 @@ function onBeforeInput(e: InputEvent) {
       emit("update:wrongAttempt", false);
     } else {
       emit("update:wrongAttempt", true);
-      emit("error");
+      emit("error", expected ?? "");
     }
     return;
   }
@@ -50,7 +50,7 @@ function onBeforeInput(e: InputEvent) {
   e.preventDefault();
   if (char !== expected) {
     emit("update:wrongAttempt", true);
-    emit("error");
+    emit("error", expected ?? "");
   } else {
     emit("update:wrongAttempt", false);
     emit("start");

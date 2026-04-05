@@ -94,11 +94,13 @@ const props = withDefaults(
     activeKey?: string | null;
     showLegend?: boolean;
     compact?: boolean;
+    errorKeys?: string[];
   }>(),
   {
     activeKey: null,
     showLegend: true,
     compact: false,
+    errorKeys: () => [],
   },
 );
 
@@ -139,9 +141,10 @@ function handlePress(key: string) {
 
 function keyStyle(keyDef: KeyDef, pressed: boolean) {
   const color = FINGER_COLORS[keyDef.finger] ?? "#374151";
+  const hasError = props.errorKeys.includes(keyDef.key);
   return {
-    backgroundColor: pressed ? color + "99" : color + "33",
-    borderColor: color + "88",
+    backgroundColor: hasError ? "#ef444466" : pressed ? color + "99" : color + "33",
+    borderColor: hasError ? "#ef4444aa" : color + "88",
     color: "#fff",
     transform: pressed ? "translateY(2px) scale(0.93)" : "",
     boxShadow: pressed ? `0 1px 0 ${color}44` : `0 3px 0 ${color}44`,

@@ -46,7 +46,7 @@
       @update:model-value="onInputValue"
       @update:active-key="activeKey = $event"
       @update:wrong-attempt="wrongAttempt = $event"
-      @error="errorCount++"
+      @error="errorCount++; errorKeys.push($event)"
       @start="onStart"
     />
 
@@ -87,6 +87,7 @@
         :compact="false"
         :show-legend="false"
         :active-key="activeKey"
+        :error-keys="finished ? errorKeys : []"
       />
     </div>
 
@@ -162,6 +163,7 @@ const finished = ref(false);
 const activeKey = ref<string | null>(null);
 const wrongAttempt = ref(false);
 const errorCount = ref(0);
+const errorKeys = ref<string[]>([]);
 
 const currentChars = computed(() => [...sentence.value.text]);
 
@@ -266,6 +268,7 @@ function resetPractice(lv: Level | null) {
   activeKey.value = null;
   wrongAttempt.value = false;
   errorCount.value = 0;
+  errorKeys.value = [];
   nextTick(() => typingInput.value?.focus());
 }
 
