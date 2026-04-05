@@ -24,6 +24,7 @@
     </p>
 
     <div
+      @click="lang === 'en' && typingInput?.focus()"
       class="bg-gray-900 rounded-2xl p-6 shadow-xl min-h-[5rem] flex items-center justify-center cursor-text"
     >
       <p class="text-center text-2xl font-bold leading-relaxed">
@@ -135,8 +136,11 @@ import { useSentences, type Lang } from "../composables/useSentences";
 import type { Sentence } from "../data/sentences";
 import { useHistoryStore } from "../stores/historyStore";
 import type { CharStat } from "../stores/historyStore";
+import { useAuth } from "../composables/useAuth";
+import { supabase } from "../lib/supabase";
 
 const historyStore = useHistoryStore();
+const { user } = useAuth();
 const {
   lang,
   loading: sentencesLoading,
@@ -257,6 +261,19 @@ function saveRecord() {
     duration,
     charErrors,
   });
+
+  if (user.value) {
+    supabase.from("typing_records").insert({
+      user_id: user.value.id,
+      lang: lang.value,
+      sentence: target,
+      wpm: wpm.value,
+      accuracy: accuracy.value,
+    }).then(({ error }) => {
+      if (error) console.error("insert error:", error);
+      else console.log("record saved");
+    });
+  }
 }
 
 function selectLang(l: Lang) {
