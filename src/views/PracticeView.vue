@@ -206,7 +206,7 @@ const charClasses = computed(() => {
   return currentChars.value.map((_, i) => {
     if (i < colorUpTo)
       return raw[i] === target[i] ? "text-green-400" : "text-red-400";
-    if (i === raw.length)
+    if (i === raw.length && !composing.value)
       return wrongAttempt.value
         ? "bg-red-500/30 text-red-500"
         : "bg-indigo-700/50 text-white";
