@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import CharErrorList from "../components/CharErrorList.vue";
 import { useHistoryStore } from "../stores/historyStore";
 import { useAuth } from "../composables/useAuth";
@@ -92,7 +92,7 @@ interface DbRecord {
 const dbRecords = ref<DbRecord[]>([]);
 const loading = ref(false);
 
-onMounted(async () => {
+async function fetchRecords() {
   if (!user.value) return;
   loading.value = true;
   const { data } = await supabase
@@ -102,7 +102,9 @@ onMounted(async () => {
     .limit(100);
   dbRecords.value = data ?? [];
   loading.value = false;
-});
+}
+
+watch(user, (u) => { if (u) fetchRecords(); }, { immediate: true });
 
 const records = computed(() =>
   user.value
