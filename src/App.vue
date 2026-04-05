@@ -26,11 +26,30 @@
       >
         統計紀錄
       </router-link>
+      <div class="ml-auto flex items-center gap-3">
+        <template v-if="user">
+          <img
+            v-if="user.user_metadata?.avatar_url"
+            :src="user.user_metadata.avatar_url"
+            class="w-7 h-7 rounded-full"
+          />
+          <span class="text-sm text-gray-300">{{ user.user_metadata?.name }}</span>
+          <button
+            @click="logout"
+            class="text-sm text-gray-400 hover:text-white transition-colors"
+          >登出</button>
+        </template>
+        <button
+          v-else
+          @click="loginWithGoogle"
+          class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+        >Google 登入</button>
+      </div>
       <a
         href="https://github.com/Yamapi0103/typing_practice"
         target="_blank"
         rel="noopener noreferrer"
-        class="ml-auto text-gray-400 hover:text-white transition-colors"
+        class="text-gray-400 hover:text-white transition-colors"
         title="GitHub"
       >
         <svg
@@ -51,3 +70,8 @@
     </main>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useAuth } from "./composables/useAuth";
+const { user, loginWithGoogle, logout } = useAuth();
+</script>
