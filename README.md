@@ -1,20 +1,24 @@
-# 注音打字練習
+# ⌨ 打字練習
 
-A Chinese (Bopomofo) and English typing practice app.
+身為一個工程師，打字速度是非常重要的
+
+**[Demo Page](https://typing-practice-roan.vercel.app)**
 
 ## Features
 
-- Chinese (注音) and English typing practice
-- Real-time WPM and accuracy tracking
-- Login with Google account
-- Typing history stored in the cloud via Supabase
+- **指法大全** — Interactive keyboard layout showing Bopomofo (Daqian standard) key mappings and finger assignments. Press any key to highlight its position and finger.
+- **打字練習** — Typing practice in Chinese (Bopomofo) and English, with 3 difficulty levels. Real-time feedback with color-coded correct/incorrect characters.
+  - 中文：從[教育部](https://www.edu.tw) 新聞 RSS 抓取即時新聞標題作為練習句
+  - English：從 [type.fit](https://type.fit) 抓取英文句子，依難度分級
+- **統計紀錄** — Persistent stats tracking WPM, accuracy, and practice history.
 
 ## Tech Stack
 
-- Vue 3 + TypeScript + Vite
-- Tailwind CSS
-- Supabase (Auth + Database)
-- Deployed on Vercel
+- [Vue 3](https://vuejs.org/) + [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Pinia](https://pinia.vuejs.org/) (with persisted state)
+- [Vue Router](https://router.vuejs.org/)
 
 ## Development
 
@@ -23,9 +27,6 @@ pnpm install
 pnpm dev
 ```
 
-## Environment Variables
-
-```
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```bash
+pnpm build
 ```
