@@ -61,10 +61,7 @@
       @update:active-key="activeKey = $event"
       @update:wrong-attempt="wrongAttempt = $event"
       @update:ime-detected="imeDetected = $event"
-      @error="
-        errorCount++;
-        errorKeys.push($event);
-      "
+      @error="onCharError($event)"
       @start="onStart"
     />
 
@@ -186,6 +183,7 @@ const activeKey = ref<string | null>(null);
 const wrongAttempt = ref(false);
 const errorCount = ref(0);
 const errorKeys = ref<string[]>([]);
+const charErrors = ref<Record<string, CharStat>>({});
 const imeDetected = ref(false);
 const capsLockOn = ref(false);
 
@@ -233,7 +231,20 @@ function onStart() {
   if (!startTime.value) startTime.value = Date.now();
 }
 
+function onCharError(char: string) {
+  errorCount.value++;
+  errorKeys.value.push(char);
+  if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 };
+  charErrors.value[char].errors++;
+}
+
 function onInputValue(val: string) {
+  // track the newly accepted correct char
+  const char = sentence.value.text[val.length - 1];
+  if (char) {
+    if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 };
+    charErrors.value[char].total++;
+  }
   inputValue.value = val;
   if (!composing.value && val === sentence.value.text) {
     finishTime.value = Date.now();
@@ -253,21 +264,13 @@ const wpm = computed(() => {
 
 function saveRecord() {
   const target = sentence.value.text;
-  const raw = inputValue.value;
-  const charErrors: Record<string, CharStat> = {};
-  for (let i = 0; i < target.length; i++) {
-    const char = target[i];
-    if (!charErrors[char]) charErrors[char] = { total: 0, errors: 0 };
-    charErrors[char].total++;
-    if (raw[i] !== char) charErrors[char].errors++;
-  }
   const duration = (finishTime.value! - startTime.value!) / 1000;
   historyStore.addRecord({
     wpm: wpm.value,
     accuracy: accuracy.value,
     charCount: typedCount.value,
     duration,
-    charErrors,
+    charErrors: charErrors.value,
   });
 
   if (user.value) {
@@ -277,6 +280,7 @@ function saveRecord() {
       sentence: target,
       wpm: wpm.value,
       accuracy: accuracy.value,
+      char_errors: charErrors.value,
     }).then(({ error }) => {
       if (error) console.error("insert error:", error);
       else console.log("record saved");
@@ -309,6 +313,7 @@ function resetPractice(lv: Level | null) {
   wrongAttempt.value = false;
   errorCount.value = 0;
   errorKeys.value = [];
+  charErrors.value = {};
   imeDetected.value = false;
   nextTick(() => typingInput.value?.focus());
 }

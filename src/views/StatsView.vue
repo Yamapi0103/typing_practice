@@ -20,7 +20,7 @@
     </div>
 
     <div class="bg-gray-900 rounded-xl p-4">
-      <CharErrorList :chars="store.weakChars" />
+      <CharErrorList :chars="weakChars" />
     </div>
 
     <div class="bg-gray-900 rounded-xl p-4">
@@ -74,6 +74,7 @@
 import { ref, computed, watch } from "vue";
 import CharErrorList from "../components/CharErrorList.vue";
 import { useHistoryStore } from "../stores/historyStore";
+import type { WeakChar, CharStat } from "../stores/historyStore";
 import { useAuth } from "../composables/useAuth";
 import { supabase } from "../lib/supabase";
 
@@ -87,6 +88,7 @@ interface DbRecord {
   wpm: number;
   accuracy: number;
   created_at: string;
+  char_errors: Record<string, CharStat> | null;
 }
 
 const dbRecords = ref<DbRecord[]>([]);
@@ -104,10 +106,16 @@ async function fetchRecords() {
   loading.value = false;
 }
 
-watch(user, (u) => { if (u) fetchRecords(); }, { immediate: true });
+watch(
+  user,
+  u => {
+    if (u) fetchRecords();
+  },
+  { immediate: true },
+);
 
-const records = computed(() =>
-  user.value
+const records = computed(() => {
+  return user.value
     ? dbRecords.value.map(r => ({
         date: r.created_at,
         wpm: r.wpm,
@@ -115,8 +123,9 @@ const records = computed(() =>
         charCount: r.sentence.length,
         duration: 0,
       }))
-    : store.records,
-);
+    : store.records;
+});
+console.log("🚀 ~ records:", records.value);
 
 const bestWpm = computed(() =>
   records.value.length ? Math.max(...records.value.map(r => r.wpm)) : 0,
@@ -129,6 +138,29 @@ const avgWpm = computed(() =>
       )
     : 0,
 );
+
+const weakChars = computed<WeakChar[]>(() => {
+  if (!user.value) return store.weakChars;
+  const agg: Record<string, CharStat> = {};
+  for (const r of dbRecords.value) {
+    if (!r.char_errors) continue;
+    for (const [char, { total, errors }] of Object.entries(r.char_errors)) {
+      if (!agg[char]) agg[char] = { total: 0, errors: 0 };
+      agg[char].total += total;
+      agg[char].errors += errors;
+    }
+  }
+  return Object.entries(agg)
+    .filter(([, v]) => v.total >= 2)
+    .map(([char, v]) => ({
+      char,
+      errorRate: v.errors / v.total,
+      errors: v.errors,
+      total: v.total,
+    }))
+    .sort((a, b) => b.errorRate - a.errorRate)
+    .slice(0, 20);
+});
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
