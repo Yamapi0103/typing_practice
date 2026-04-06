@@ -44,6 +44,13 @@
       ⚠️ 偵測到中文輸入法，請切換為英文輸入法
     </p>
 
+    <p
+      v-if="capsLockOn"
+      class="text-sm text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 rounded-lg px-4 py-2 text-center"
+    >
+      ⚠️ Caps Lock is on
+    </p>
+
     <EnglishInput
       v-if="lang === 'en'"
       ref="typingInput"
@@ -180,6 +187,7 @@ const wrongAttempt = ref(false);
 const errorCount = ref(0);
 const errorKeys = ref<string[]>([]);
 const imeDetected = ref(false);
+const capsLockOn = ref(false);
 
 const currentChars = computed(() => [...sentence.value.text]);
 
@@ -306,6 +314,7 @@ function resetPractice(lv: Level | null) {
 }
 
 function onGlobalKeydown(e: KeyboardEvent) {
+  capsLockOn.value = e.getModifierState("CapsLock");
   if (finished.value && e.code === "Enter") {
     e.preventDefault();
     nextSentence();
