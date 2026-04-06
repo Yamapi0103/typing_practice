@@ -125,7 +125,6 @@ const records = computed(() => {
       }))
     : store.records;
 });
-console.log("🚀 ~ records:", records.value);
 
 const bestWpm = computed(() =>
   records.value.length ? Math.max(...records.value.map(r => r.wpm)) : 0,
