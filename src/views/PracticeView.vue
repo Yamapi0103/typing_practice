@@ -239,11 +239,26 @@ function onCharError(char: string) {
 }
 
 function onInputValue(val: string) {
-  // track the newly accepted correct char
-  const char = sentence.value.text[val.length - 1];
-  if (char) {
-    if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 };
-    charErrors.value[char].total++;
+  if (lang.value === "en") {
+    // en: one char accepted at a time
+    const char = sentence.value.text[val.length - 1];
+    if (char) {
+      if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 };
+      charErrors.value[char].total++;
+    }
+  } else if (!composing.value) {
+    // zh: composition just committed — check newly added chars
+    const target = sentence.value.text;
+    for (let i = composingStartLen.value; i < val.length; i++) {
+      const char = target[i];
+      if (!char) break;
+      if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 };
+      charErrors.value[char].total++;
+      if (val[i] !== char) {
+        charErrors.value[char].errors++;
+        errorCount.value++;
+      }
+    }
   }
   inputValue.value = val;
   if (!composing.value && val === sentence.value.text) {
