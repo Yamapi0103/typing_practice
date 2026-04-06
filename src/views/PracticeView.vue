@@ -57,7 +57,7 @@
       :target="sentence.text"
       :disabled="finished"
       :model-value="inputValue"
-      @update:model-value="onInputValue"
+      @update:model-value="onEnInputValue"
       @update:active-key="activeKey = $event"
       @update:wrong-attempt="wrongAttempt = $event"
       @update:ime-detected="imeDetected = $event"
@@ -70,7 +70,7 @@
       ref="typingInput"
       :disabled="finished"
       :model-value="inputValue"
-      @update:model-value="onInputValue"
+      @update:model-value="onZhInputValue"
       @update:active-key="activeKey = $event"
       @update:composing="composing = $event"
       @update:composing-start-len="composingStartLen = $event"
@@ -238,16 +238,22 @@ function onCharError(char: string) {
   charErrors.value[char].errors++;
 }
 
-function onInputValue(val: string) {
-  if (lang.value === "en") {
-    // en: one char accepted at a time
-    const char = sentence.value.text[val.length - 1];
-    if (char) {
-      if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 };
-      charErrors.value[char].total++;
-    }
-  } else if (!composing.value) {
-    // zh: composition just committed — check newly added chars
+function onEnInputValue(val: string) {
+  const char = sentence.value.text[val.length - 1];
+  if (char) {
+    if (!charErrors.value[char]) charErrors.value[char] = { total: 0, errors: 0 };
+    charErrors.value[char].total++;
+  }
+  inputValue.value = val;
+  if (val === sentence.value.text) {
+    finishTime.value = Date.now();
+    finished.value = true;
+    saveRecord();
+  }
+}
+
+function onZhInputValue(val: string) {
+  if (!composing.value) {
     const target = sentence.value.text;
     for (let i = composingStartLen.value; i < val.length; i++) {
       const char = target[i];
