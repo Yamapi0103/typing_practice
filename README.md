@@ -28,9 +28,43 @@
 
 ## 開發
 
+### 環境設定
+
+1. **建立 `.env.local` 檔案**（專案根目錄）
+
+   ```env
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGc... (你的 anon 公開金鑰)
+   ```
+
+2. **設定 Supabase（API 金鑰）**
+
+   登入 [Supabase Dashboard](https://supabase.com/dashboard)：
+   - 選擇你的專案 → Settings → API
+   - 複製 **Project URL** 和 **anon (public)** 金鑰
+   - 貼到 `.env.local` 中
+
+3. **設定 Google OAuth（選用）**
+
+   若要啟用 Google 登入功能，需在 Supabase 設定：
+   - 進入 Authentication → Providers → Google
+   - 確保 **Redirect URLs** 包含你的本地開發 URL：
+     ```
+     http://localhost:/**
+     ```
+   - 完整設定說明見 [Supabase Auth 文件](https://supabase.com/docs/guides/auth/oauth-2)
+
+   **備註**：若只想測試無 Google 登入的功能，可跳過此步驟
+
+4. **啟動開發伺服器**
+   ```bash
+   pnpm install
+   pnpm dev
+   ```
+
+### 構建
+
 ```bash
-pnpm install
-pnpm dev
 pnpm build
 ```
 
